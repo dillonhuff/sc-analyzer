@@ -22,6 +22,14 @@ SC_MODULE(Counter) {
 
   SC_CTOR(Counter) {
     sensitive << clk.pos();
+
+    SC_THREAD(process);
+  }
+
+  void process() {
+    while (1) {
+      wait();
+    }
   }
 };
 
