@@ -2,9 +2,13 @@
 #include "clang/AST/RecursiveASTVisitor.h"
 #include "clang/Frontend/CompilerInstance.h"
 #include "clang/Frontend/FrontendAction.h"
+#include "clang/Tooling/CommonOptionsParser.h"
 #include "clang/Tooling/Tooling.h"
 
 using namespace clang;
+using namespace clang::tooling;
+using namespace clang::driver;
+using namespace llvm;
 
 class FindNamedClassVisitor
   : public RecursiveASTVisitor<FindNamedClassVisitor> {
@@ -48,8 +52,26 @@ public:
   }
 };
 
-int main(int argc, char **argv) {
-  if (argc > 1) {
-    clang::tooling::runToolOnCode(new FindNamedClassAction, argv[1]);
+class FindNamedClassActionFactory : public FrontendActionFactory {
+public:
+  virtual FrontendAction* create() override {
+    return new FindNamedClassAction();
   }
+};
+
+static cl::OptionCategory MyToolCategory("My tool options");
+
+int main(int argc, const char **argv) {
+
+  CommonOptionsParser options(argc, argv, MyToolCategory);
+  const auto& sources = options.getSourcePathList();
+  auto& db = options.getCompilations();
+  
+  ClangTool tool(db, sources);
+
+  FindNamedClassActionFactory factory;
+  tool.run(&factory);
+  // if (argc > 1) {
+  //   clang::tooling::runToolOnCode(new FindNamedClassAction, argv[1]);
+  // }
 }
