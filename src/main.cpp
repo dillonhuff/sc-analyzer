@@ -71,6 +71,7 @@ int main(int argc, const char **argv) {
 
   FindNamedClassActionFactory factory;
   tool.run(&factory);
+
   // if (argc > 1) {
   //   clang::tooling::runToolOnCode(new FindNamedClassAction, argv[1]);
   // }
