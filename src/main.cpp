@@ -10,10 +10,31 @@ using namespace clang::tooling;
 using namespace clang::driver;
 using namespace llvm;
 
-bool isSystemCModule(CXXRecordDecl* decl) {
+using namespace std;
+
+bool isSystemCModule(const CXXRecordDecl* decl) {
+  string name = decl->getQualifiedNameAsString();
+  //errs() << "name = " << name << "\n";
+  if ((name == "sc_core::sc_module")) {
+    return true;
+  }
+
   if (decl->hasDefinition()) {
     if (decl->getNumBases() > 0) {
-      return true;
+
+      for (auto base : decl->bases()) {
+        const clang::Type* tp = base.getType().getTypePtr();
+        auto recTp = tp->getAs<clang::RecordType>();
+        if (recTp != nullptr) {
+          auto baseDecl = recTp->getDecl();
+
+          if (CXXRecordDecl::classof(baseDecl)) {
+            if (isSystemCModule(dyn_cast<const clang::CXXRecordDecl>(baseDecl))) {
+              return true;
+            }
+          }
+        }
+      }
     }
   }
 
