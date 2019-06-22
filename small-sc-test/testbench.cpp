@@ -24,7 +24,6 @@ SC_MODULE(Counter) {
   sc_in<bool> rst;
   sc_out<Data> out;
 
-
   SC_CTOR(Counter) {
     sensitive << clk.pos();
 
