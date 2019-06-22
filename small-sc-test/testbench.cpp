@@ -16,9 +16,14 @@
 SC_MODULE(Counter) {
  public:
 
-  sc_in_clk clk;
-  
   typedef sc_int<32> Data;
+
+  Data data;
+  
+  sc_in_clk clk;
+  sc_in<bool> rst;
+  sc_out<Data> out;
+
 
   SC_CTOR(Counter) {
     sensitive << clk.pos();
@@ -27,7 +32,15 @@ SC_MODULE(Counter) {
   }
 
   void process() {
+
+    data = 0;
+    out.write(data);
+
+    wait();
+    
     while (1) {
+      out.write(data);
+      data = data + 1;
       wait();
     }
   }

@@ -50,6 +50,20 @@ public:
   bool VisitCXXRecordDecl(CXXRecordDecl *decl) {
     if (isSystemCModule(decl)) {
       errs() << "Found SystemC module " << decl->getQualifiedNameAsString() << "\n";
+
+      for (auto ctor : decl->ctors()) {
+        errs() << "\tConstructor body\n";
+        Stmt* body = ctor->getBody();
+        if (body != nullptr) {
+          if (CompoundStmt::classof(body)) {
+            auto stmts = dyn_cast<CompoundStmt>(body);
+            for (Stmt* st : stmts->children()) {
+              errs() << "--- Body stmt\n";
+              st->dump();
+            }
+          }
+        }
+      }
     }
     
     return true;
