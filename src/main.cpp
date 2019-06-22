@@ -10,25 +10,32 @@ using namespace clang::tooling;
 using namespace clang::driver;
 using namespace llvm;
 
+bool isSystemCModule(CXXRecordDecl* decl) {
+  if (decl->hasDefinition()) {
+    if (decl->getNumBases() > 0) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 class FindNamedClassVisitor
   : public RecursiveASTVisitor<FindNamedClassVisitor> {
 public:
   explicit FindNamedClassVisitor(ASTContext *Context)
     : Context(Context) {}
 
-  bool VisitCXXRecordDecl(CXXRecordDecl *Declaration) {
-    if (Declaration->getQualifiedNameAsString() == "n::m::C") {
-      FullSourceLoc FullLocation = Context->getFullLoc(Declaration->getBeginLoc());
-      if (FullLocation.isValid())
-        llvm::outs() << "Found declaration at "
-                     << FullLocation.getSpellingLineNumber() << ":"
-                     << FullLocation.getSpellingColumnNumber() << "\n";
+  bool VisitCXXRecordDecl(CXXRecordDecl *decl) {
+    if (isSystemCModule(decl)) {
+      errs() << "Found SystemC module " << decl->getQualifiedNameAsString() << "\n";
     }
+    
     return true;
   }
 
 private:
-  ASTContext *Context;
+  ASTContext* Context;
 };
 
 class FindNamedClassConsumer : public clang::ASTConsumer {
@@ -72,6 +79,7 @@ int main(int argc, const char **argv) {
   FindNamedClassActionFactory factory;
   tool.run(&factory);
 
+  errs() << "Done\n";
   // if (argc > 1) {
   //   clang::tooling::runToolOnCode(new FindNamedClassAction, argv[1]);
   // }
