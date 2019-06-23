@@ -87,6 +87,18 @@ public:
         const clang::Type* tp = qtp.getTypePtr();
         tp->dump();
         errs() << "\t" << qtp.getAsString() << " " << fd->getName() << "\n";
+
+        if (RecordType::classof(tp)) {
+          errs() << "\t\tis a record\n";
+          const RecordType* declTp = dyn_cast<const RecordType>(tp);
+          const RecordDecl* d = declTp->getDecl();
+          if (CXXRecordDecl::classof(d)) {
+            const CXXRecordDecl* cxxDecl = dyn_cast<const CXXRecordDecl>(d);
+            if (isSystemCModule(cxxDecl)) {
+              errs() << "\t\t\tis a system c module\n";
+            }
+          }
+        }
       }
     }
     

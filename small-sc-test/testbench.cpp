@@ -13,6 +13,19 @@
 
 #include <systemc.h>
 
+SC_MODULE(TestRecord) {
+ public:
+
+  SC_CTOR(TestRecord) {
+  }
+  
+};
+
+struct values {
+  sc_int<32> a;
+  bool b;
+};
+
 SC_MODULE(Counter) {
  public:
 
@@ -24,7 +37,12 @@ SC_MODULE(Counter) {
   sc_in<bool> rst;
   sc_out<Data> out;
 
-  SC_CTOR(Counter) {
+  sc_in<sc_uint<32> > vals[32];
+
+  TestRecord r;
+  values otherValues;
+
+  SC_CTOR(Counter) : r("r") {
     sensitive << clk.pos();
 
     SC_THREAD(process);
