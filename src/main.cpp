@@ -48,9 +48,11 @@ public:
     : Context(Context) {}
 
   bool VisitCXXRecordDecl(CXXRecordDecl *decl) {
+    
     if (isSystemCModule(decl)) {
       errs() << "Found SystemC module " << decl->getQualifiedNameAsString() << "\n";
-
+      SourceManager& mgr = Context->getSourceManager();
+      
       for (auto ctor : decl->ctors()) {
         errs() << "\tConstructor body\n";
         Stmt* body = ctor->getBody();
@@ -59,6 +61,19 @@ public:
             auto stmts = dyn_cast<CompoundStmt>(body);
             for (Stmt* st : stmts->children()) {
               errs() << "--- Body stmt\n";
+              SourceLocation start = st->getBeginLoc();
+              if (mgr.isMacroBodyExpansion(start)) {
+                errs() << "\t\t### Is in macro\n";
+                SourceLocation topMacro =
+                  mgr.getTopMacroCallerLoc(start);
+                errs() << "\t\tTop macro location = " << topMacro.printToString(mgr) << "\n";
+
+                LangOptions LangOpts;
+                StringRef subExprText =
+                  Lexer::getSourceText(CharSourceRange::getTokenRange(st->getSourceRange()), mgr, LangOpts);
+                errs() << "Macro subexpr = " << subExprText << "\n";
+                //errs() << "\t\tFile location of macro = " << mgr.getFilename(topMacro) << "\n";
+              }
               st->dump();
             }
           }
