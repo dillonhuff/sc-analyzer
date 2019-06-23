@@ -72,12 +72,21 @@ public:
                 StringRef subExprText =
                   Lexer::getSourceText(CharSourceRange::getTokenRange(st->getSourceRange()), mgr, LangOpts);
                 errs() << "Macro subexpr = " << subExprText << "\n";
+
                 //errs() << "\t\tFile location of macro = " << mgr.getFilename(topMacro) << "\n";
               }
               st->dump();
             }
           }
         }
+      }
+
+      errs() << "--- Fields\n";
+      for (auto fd : decl->fields()) {
+        QualType qtp = fd->getType();
+        const clang::Type* tp = qtp.getTypePtr();
+        tp->dump();
+        errs() << "\t" << qtp.getAsString() << " " << fd->getName() << "\n";
       }
     }
     
