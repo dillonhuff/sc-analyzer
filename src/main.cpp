@@ -43,6 +43,16 @@ bool isSystemCModule(const CXXRecordDecl* decl) {
   return false;
 }
 
+const clang::Type* stripTypedef(const clang::Type* tp) {
+  if (TypedefType::classof(tp)) {
+    QualType desugared = dyn_cast<TypedefType>(tp)->desugar();
+    const clang::Type* desugaredTp = desugared.getTypePtr();
+    return desugaredTp;
+  } else {
+    return tp;
+  }
+}
+
 class FindNamedClassVisitor
   : public RecursiveASTVisitor<FindNamedClassVisitor> {
 public:
@@ -51,9 +61,10 @@ public:
 
   bool VisitCXXRecordDecl(CXXRecordDecl *decl) {
 
-    vector<RecordDecl*> inputSignals;
-    
     if (isSystemCModule(decl)) {
+
+      vector<FieldDecl*> inputSignals;
+      
       errs() << "Found SystemC module " << decl->getQualifiedNameAsString() << "\n";
       SourceManager& mgr = Context->getSourceManager();
       
@@ -88,7 +99,7 @@ public:
       errs() << "--- Fields\n";
       for (auto fd : decl->fields()) {
         QualType qtp = fd->getType();
-        const clang::Type* tp = qtp.getTypePtr();
+        const clang::Type* tp = stripTypedef(qtp.getTypePtr());
         tp->dump();
         errs() << "\t" << qtp.getAsString() << " " << fd->getName() << "\n";
 
@@ -113,10 +124,21 @@ public:
           raw_string_ostream ss(str);
           templateName.dump(ss);
           errs() << "template name is " << ss.str() << "\n";
+          string srcTemplate = ss.str();
+          if (srcTemplate == "sc_in") {
+            inputSignals.push_back(fd);
+          }
         } else if (TypedefType::classof(tp)) {
           errs() << "\t\tis a typedef\n";
         }
       }
+
+
+      errs() << "--- " << inputSignals.size() << " input signal(s)\n";
+      for (auto decl : inputSignals) {
+        decl->dump();
+      }
+      
     }
     
     return true;
