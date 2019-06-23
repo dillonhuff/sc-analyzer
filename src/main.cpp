@@ -5,6 +5,8 @@
 #include "clang/Tooling/CommonOptionsParser.h"
 #include "clang/Tooling/Tooling.h"
 
+#include <sstream>
+
 using namespace clang;
 using namespace clang::tooling;
 using namespace clang::driver;
@@ -48,6 +50,8 @@ public:
     : Context(Context) {}
 
   bool VisitCXXRecordDecl(CXXRecordDecl *decl) {
+
+    vector<RecordDecl*> inputSignals;
     
     if (isSystemCModule(decl)) {
       errs() << "Found SystemC module " << decl->getQualifiedNameAsString() << "\n";
@@ -98,6 +102,16 @@ public:
               errs() << "\t\t\tis a system c module\n";
             }
           }
+        } else if (TemplateSpecializationType::classof(tp)) {
+          errs() << "\t\tis template specialization\n";
+          auto templateSpec =
+            dyn_cast<const TemplateSpecializationType>(tp);
+          TemplateName templateName =
+            templateSpec->getTemplateName();
+          templateName.dump();
+          errs() << "\n";
+        } else if (TypedefType::classof(tp)) {
+          errs() << "\t\tis a typedef\n";
         }
       }
     }
