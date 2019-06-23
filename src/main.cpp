@@ -108,8 +108,11 @@ public:
             dyn_cast<const TemplateSpecializationType>(tp);
           TemplateName templateName =
             templateSpec->getTemplateName();
-          templateName.dump();
-          errs() << "\n";
+
+          string str;
+          raw_string_ostream ss(str);
+          templateName.dump(ss);
+          errs() << "template name is " << ss.str() << "\n";
         } else if (TypedefType::classof(tp)) {
           errs() << "\t\tis a typedef\n";
         }
